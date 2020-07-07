@@ -73,30 +73,78 @@ const FoodDetails: React.FC = () => {
 
   useEffect(() => {
     async function loadFood(): Promise<void> {
-      // Load a specific food with extras based on routeParams id
+      const response = await api.get(`/foods/${routeParams.id}`);
+
+      const currentFood = {
+        ...response.data,
+        formattedPrice: formatValue(response.data.price),
+      };
+
+      const initialExtra = currentFood.extras.map((extra: Extra) => {
+        return { ...extra, quantity: 0 };
+      });
+
+      api.get('/favorites').then(res => {
+        res.data.map(favoriteFood =>
+          setIsFavorite(favoriteFood.id === currentFood.id),
+        );
+      });
+
+      setFood(currentFood);
+      setExtras(initialExtra);
     }
 
     loadFood();
   }, [routeParams]);
 
   function handleIncrementExtra(id: number): void {
-    // Increment extra quantity
+    const tempArray = extras.map(extra => {
+      if (extra.id === id) {
+        const quantity = extra.quantity + 1;
+
+        return {
+          ...extra,
+          quantity,
+        };
+      }
+
+      return extra;
+    });
+
+    setExtras(tempArray);
   }
 
   function handleDecrementExtra(id: number): void {
-    // Decrement extra quantity
+    const tempArray = extras.map(extra => {
+      if (extra.id === id) {
+        const quantity = extra.quantity === 0 ? 0 : extra.quantity - 1;
+
+        return {
+          ...extra,
+          quantity,
+        };
+      }
+
+      return extra;
+    });
+
+    setExtras(tempArray);
   }
 
   function handleIncrementFood(): void {
-    // Increment food quantity
+    const quantity = foodQuantity + 1;
+
+    setFoodQuantity(quantity);
   }
 
   function handleDecrementFood(): void {
-    // Decrement food quantity
+    const quantity = foodQuantity === 1 ? 1 : foodQuantity - 1;
+
+    setFoodQuantity(quantity);
   }
 
   const toggleFavorite = useCallback(() => {
-    // Toggle if food is favorite or not
+    setIsFavorite(state => !state);
   }, [isFavorite, food]);
 
   const cartTotal = useMemo(() => {
